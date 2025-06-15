@@ -1,10 +1,12 @@
 import { redirect } from 'next/navigation';
 import { createClient } from 'redis';
 
-export default async function RedirectPage({ params }: { params: { shortId: string } }) {
-  const { shortId } = params;
+export default async function RedirectPage({ params }: { params:  Promise <{ shortId: string }> }) {
+  const { shortId } = await params;
 
   console.log(`Attempting to redirect for shortId: ${shortId}`); // Debug log
+
+  let redirectUrl = '';
 
   try {
     const client = createClient({ url: process.env.REDIS_URL || 'redis://localhost:6379' });
@@ -17,13 +19,15 @@ export default async function RedirectPage({ params }: { params: { shortId: stri
 
     if (!url) {
       console.log(`No URL found for shortId: ${shortId}, redirecting to /`); // Debug log
-      redirect('/');
+      redirectUrl = '/';
     }
 
     console.log(`Redirecting to: ${url}`); // Debug log
-    redirect(url);
+    redirectUrl  =  url || '';
   } catch (error) {
     console.error('Error redirecting URL:', error);
-    redirect('/');
-  }
+    redirectUrl = '/';
+  } finally {                    // see this step
+  redirect( redirectUrl);
+}
 }
